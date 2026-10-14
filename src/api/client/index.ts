@@ -1,0 +1,4 @@
+import { create, type AxiosError, type InternalAxiosRequestConfig } from 'axios'; import{env}from'@/config/env'; import{accessTokenStore}from'@/auth/access-token'; import{sessionManager}from'@/auth/session-manager'; import{normalizeApiError}from'./error';
+type Retriable=InternalAxiosRequestConfig&{_authRetry?:boolean}; export const apiClient=create({baseURL:env.EXPO_PUBLIC_API_BASE_URL,timeout:30000});
+apiClient.interceptors.request.use(c=>{const t=accessTokenStore.get();if(t)c.headers.Authorization=`Bearer ${t}`;return c;});
+apiClient.interceptors.response.use(r=>r,async(error:AxiosError)=>{const c=error.config as Retriable|undefined;const path=c?.url??'';if(error.response?.status===401&&c&&!c._authRetry&&!path.includes('/auth/mobile/login')&&!path.includes('/auth/mobile/refresh')){c._authRetry=true;await sessionManager.refresh();return apiClient(c);}throw normalizeApiError(error);});

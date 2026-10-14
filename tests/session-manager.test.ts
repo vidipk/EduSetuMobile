@@ -1,0 +1,22 @@
+import type { MobileSession } from '@/api/contracts/auth';
+import { accessTokenStore } from '@/auth/access-token';
+import { SessionManager } from '@/auth/session-manager';
+import type { SecureStorage } from '@/auth/secure-storage';
+
+const session = (token = 'access-1', refreshToken = 'refresh-1'): MobileSession => ({ accessToken: token, refreshToken, accessTokenExpiresAt: '2026-01-01T00:00:00.000Z', refreshTokenExpiresAt: '2026-02-01T00:00:00.000Z', sessionId: 'session', sessionFamilyId: 'family', user: { id: 'user', fullName: 'Student', email: 'student@example.test', role: 'STUDENT', status: 'ACTIVE', organizationId: null, organization: null } });
+
+function setup(initial: string | null = null) {
+  let stored = initial;
+  const storage: SecureStorage = { getRefreshToken: jest.fn(async () => stored), setRefreshToken: jest.fn(async (value) => { stored = value; }), removeRefreshToken: jest.fn(async () => { stored = null; }) };
+  const api = { login: jest.fn(async () => session()), refresh: jest.fn(async () => session('access-2', 'refresh-2')), logout: jest.fn(async () => undefined), logoutAll: jest.fn(async () => undefined) };
+  return { storage, api, manager: new SessionManager(storage, api) };
+}
+
+afterEach(() => accessTokenStore.set(null));
+test('login persists only the refresh token and keeps access token in memory', async () => { const { manager, storage } = setup(); await manager.login({ email: 'student@example.test', password: 'password1', deviceId: '00000000-0000-4000-8000-000000000000', platform: 'ANDROID' }); expect(storage.setRefreshToken).toHaveBeenCalledWith('refresh-1'); expect(accessTokenStore.get()).toBe('access-1'); });
+test('bootstrap rotates a stored refresh token', async () => { const { manager, storage } = setup('old'); await manager.bootstrap(); expect(storage.setRefreshToken).toHaveBeenCalledWith('refresh-2'); expect(accessTokenStore.get()).toBe('access-2'); });
+test('shares one concurrent refresh request', async () => { const { manager, api } = setup('old'); await Promise.all([manager.refresh(), manager.refresh(), manager.refresh()]); expect(api.refresh).toHaveBeenCalledTimes(1); });
+test('clears credentials when refresh is rejected', async () => { const { manager, api, storage } = setup('old'); api.refresh.mockRejectedValueOnce(new Error('rejected')); await expect(manager.refresh()).rejects.toThrow('rejected'); expect(storage.removeRefreshToken).toHaveBeenCalled(); expect(accessTokenStore.get()).toBeNull(); });
+test('logout clears local credentials before backend revocation completes', async () => { const { manager, api, storage } = setup(); let resolveLogout: (() => void) | undefined; api.logout.mockImplementationOnce(() => new Promise<undefined>((resolve) => { resolveLogout = () => resolve(undefined); })); await manager.login({ email: 'student@example.test', password: 'password1', deviceId: '00000000-0000-4000-8000-000000000000', platform: 'ANDROID' }); const logout = manager.logout(); await new Promise<void>((resolve) => { setTimeout(resolve, 0); }); expect(api.logout).toHaveBeenCalledWith('access-1'); expect(storage.removeRefreshToken).toHaveBeenCalled(); expect(accessTokenStore.get()).toBeNull(); expect(manager.getSnapshot()).toEqual({ user: null, status: 'unauthenticated' }); resolveLogout?.(); await logout; });
+test('logout clears local credentials even if the server is unreachable', async () => { const { manager, api, storage } = setup(); await manager.login({ email: 'student@example.test', password: 'password1', deviceId: '00000000-0000-4000-8000-000000000000', platform: 'ANDROID' }); api.logout.mockRejectedValueOnce(new Error('offline')); await expect(manager.logout()).resolves.toBeUndefined(); expect(storage.removeRefreshToken).toHaveBeenCalled(); expect(accessTokenStore.get()).toBeNull(); });
+test('shares one in-flight logout request', async () => { const { manager, api } = setup(); let resolveLogout: (() => void) | undefined; api.logout.mockImplementationOnce(() => new Promise<undefined>((resolve) => { resolveLogout = () => resolve(undefined); })); await manager.login({ email: 'student@example.test', password: 'password1', deviceId: '00000000-0000-4000-8000-000000000000', platform: 'ANDROID' }); const first = manager.logout(); const second = manager.logout(); await new Promise<void>((resolve) => { setTimeout(resolve, 0); }); resolveLogout?.(); await Promise.all([first, second]); expect(api.logout).toHaveBeenCalledTimes(1); expect(accessTokenStore.get()).toBeNull(); });

@@ -1,0 +1,1 @@
+import{create}from'zustand'; interface State{selectedStudentProfileId:string|null;selectStudent:(id:string|null)=>void;reset:()=>void} export const useParentContext=create<State>(set=>({selectedStudentProfileId:null,selectStudent:id=>set({selectedStudentProfileId:id}),reset:()=>set({selectedStudentProfileId:null})}));

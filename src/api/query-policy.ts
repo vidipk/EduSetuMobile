@@ -1,0 +1,1 @@
+import type{AppApiError}from'@/api/client/error'; export const shouldRetry=(count:number,error:AppApiError)=>![400,401,403,404,422].includes(error.status??0)&&count<2; export const queryKeys={auth:['auth']as const};

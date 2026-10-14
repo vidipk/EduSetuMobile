@@ -32,6 +32,15 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+secrets/
 
 # typescript
 *.tsbuildinfo

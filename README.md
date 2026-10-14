@@ -1,56 +1,29 @@
-# Welcome to your Expo app 👋
+# EduSetu Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Native Expo application for EduSetu student, parent, and teacher foundations. It uses Expo SDK 57, React Native 0.86, Node 22, and npm 10. No EAS service is required.
 
-## Get started
+## Setup
 
-1. Install dependencies
+Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_BASE_URL` to the reachable Nest API URL ending in `/api/v1`. A physical device cannot reach a development computer through `localhost`; use a LAN IP or a secure tunnel.
 
-   ```bash
-   npm install
-   ```
+Run `npm install`, then `npm start`. Use `npm run android` for Android. iOS builds run on macOS or Codemagic.
 
-2. Start the app
+## Android Internal Testing APK
 
-   ```bash
-   npx expo start
-   ```
+Install Android SDK platform tools, an Android SDK platform, Build Tools, and JDK 17. Set `ANDROID_HOME` to the SDK directory, run `npx expo prebuild --platform android`, then build with the generated Gradle wrapper. The temporary internal package is `com.edusetu.mobile.internal`; it is not an approved Play Store identifier. Configure a real, phone-reachable API URL before bundling. Do not use `localhost` or `127.0.0.1` for a physical device.
 
-In the output, you'll find options to open the app in a
+## Validation
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Run `npm run typecheck`, `npm run lint`, `npm test`, and `npx expo-doctor`.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Architecture
 
-## Get a fresh project
+Screens call feature hooks, which use TanStack Query and feature APIs over the shared Axios client. SecureStore holds only refresh tokens. Access tokens remain in memory. See `docs/MOBILE_ARCHITECTURE.md` and `docs/MOBILE_SECURITY.md`.
 
-When you're ready, run:
+## OpenAPI
 
-```bash
-npm run reset-project
-```
+Set `OPENAPI_URL` to the backend Swagger JSON endpoint or `OPENAPI_FILE` to an exported schema, then run `npm run api:generate`. Backend Swagger UI is configured at `/api/docs`; the running server should be used to verify the JSON URL before generation.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Deferred
 
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Academic modules, push registration, LiveKit, analytics, offline sync, Maestro, EAS Build/Submit/Update, and store identifiers are deliberately deferred.

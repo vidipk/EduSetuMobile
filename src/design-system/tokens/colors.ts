@@ -1,0 +1,1 @@
+export const colors={primary:'#035352',accent:'#F3E8BC',background:'#F7F9F8',surface:'#FFFFFF',text:'#14201F',muted:'#667472',border:'#DDE5E3',danger:'#B42318',success:'#137A4E',student:'#2867B2',parent:'#8A5A16',teacher:'#6A4C93'}as const;
