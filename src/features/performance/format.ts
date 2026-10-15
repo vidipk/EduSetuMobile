@@ -109,3 +109,8 @@ export function trendText(direction: string) {
   if (direction === 'stable') return 'Results have been steady.';
   return NOT_ENOUGH_DATA;
 }
+
+/** True when the server may or may not have applied a change (no response, timeout, conflict, 5xx). */
+export function isUncertainOutcome(error: { status?: number }) {
+  return error.status === undefined || error.status === 408 || error.status === 409 || error.status >= 500;
+}

@@ -1,2 +1,3 @@
-import { FoundationScreen } from '@/components/common/FoundationScreen';
-export default function TeacherHomeScreen() { return <FoundationScreen title="Home" />; }
+import { TeacherDashboardScreen } from '@/features/teacher-ops/TeacherHome';
+
+export default TeacherDashboardScreen;

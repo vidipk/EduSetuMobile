@@ -18,7 +18,7 @@ export async function downloadProtectedFile({ url, filename }: { url: string; fi
   return File.downloadFileAsync(url, target, { headers: { Authorization: `Bearer ${accessToken}` } });
 }
 
-export async function shareLocalFile(file: File) {
+export async function shareLocalFile(file: File, options?: { mimeType?: string; dialogTitle?: string }) {
   if (!(await Sharing.isAvailableAsync())) throw new Error('File sharing is unavailable on this device.');
-  await Sharing.shareAsync(file.uri);
+  await Sharing.shareAsync(file.uri, options);
 }

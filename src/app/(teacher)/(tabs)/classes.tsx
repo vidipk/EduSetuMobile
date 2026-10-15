@@ -1,3 +1,3 @@
-import { TeacherOverviewScreen } from '@/features/performance/TeacherScreens';
+import { TeacherClassesScreen } from '@/features/teacher-ops/TeacherHome';
 
-export default TeacherOverviewScreen;
+export default TeacherClassesScreen;
