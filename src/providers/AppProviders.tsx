@@ -8,6 +8,7 @@ import { shouldRetry } from '@/api/query-policy';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { registerSessionInvalidation } from '@/auth/session-invalidation';
 import { ThemeProvider } from '@/design-system/theme/ThemeProvider';
+import { useLearningExperience } from '@/features/learning/experience-store';
 import { useParentContext } from '@/stores/parent-context';
 
 export const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: shouldRetry, refetchOnReconnect: true }, mutations: { retry: false } } });
@@ -16,7 +17,7 @@ function NativeLifecycleBridge() {
   useEffect(() => {
     onlineManager.setEventListener((setOnline) => NetInfo.addEventListener((state) => setOnline(Boolean(state.isConnected))));
     const subscription = AppState.addEventListener('change', (state) => focusManager.setFocused(state === 'active'));
-    const unregister = registerSessionInvalidation(() => { queryClient.clear(); useParentContext.getState().reset(); });
+    const unregister = registerSessionInvalidation(() => { queryClient.clear(); useParentContext.getState().reset(); useLearningExperience.getState().reset(); });
     return () => { subscription.remove(); unregister(); };
   }, []);
   return null;

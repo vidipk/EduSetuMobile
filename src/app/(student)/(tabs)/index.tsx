@@ -3,8 +3,15 @@ import { StyleSheet } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { AppButton, AppCard, AppScreen, AppText } from '@/design-system/components';
+import { useInstitutionExperience } from '@/features/learning/experience-store';
+import { LearningHomeScreen } from '@/features/learning/LearningHomeScreen';
 
-export default function StudentHomeScreen() {
+export default function StudentHomeRoute() {
+  const institution = useInstitutionExperience();
+  return institution ? <LearningHomeScreen /> : <StandardStudentHome />;
+}
+
+function StandardStudentHome() {
   const { user } = useAuth();
   return (
     <AppScreen style={styles.screen}>

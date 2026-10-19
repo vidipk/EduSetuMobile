@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { router, type Href, useFocusEffect } from 'expo-router';
 import { BookOpenCheck, ClipboardList } from 'lucide-react-native';
 
@@ -7,10 +7,12 @@ import { studentWorkApi } from '@/api/academics/student-work';
 import { normalizeApiError } from '@/api/client/error';
 import type { StudentHomeworkSummary, StudentQuizSummary } from '@/api/contracts/student-work';
 import { AppButton, AppCard, AppScreen, AppText, EmptyState, ErrorState } from '@/design-system/components';
+import { DailyTasksSection } from '@/features/learning/DailyTasks';
+import { useInstitutionExperience } from '@/features/learning/experience-store';
 import { colors, radius, spacing } from '@/design-system/tokens';
 import { formatDate, formatDateTime, homeworkStatus, latestQuizAttempt, quizStatus, type WorkStatusPresentation } from '../work-utils';
 
-type TabKey = 'quizzes' | 'homework';
+type TabKey = 'daily' | 'quizzes' | 'homework';
 
 type LoadState = {
   quizzes: StudentQuizSummary[];
@@ -23,7 +25,8 @@ type LoadState = {
 const initialState: LoadState = { quizzes: [], homework: [], loading: true, refreshing: false, error: null };
 
 export default function StudentTasksScreen() {
-  const [activeTab, setActiveTab] = useState<TabKey>('quizzes');
+  const institution = useInstitutionExperience();
+  const [activeTab, setActiveTab] = useState<TabKey>(institution ? 'daily' : 'quizzes');
   const [state, setState] = useState<LoadState>(initialState);
 
   const load = useCallback(async (refreshing = false) => {
@@ -65,13 +68,16 @@ export default function StudentTasksScreen() {
       </View>
 
       <View style={styles.segment}>
+        {institution ? <SegmentButton active={activeTab === 'daily'} label="Daily" onPress={() => setActiveTab('daily')} /> : null}
         <SegmentButton active={activeTab === 'quizzes'} label={`Quizzes ${counts.quizzes}`} onPress={() => setActiveTab('quizzes')} />
         <SegmentButton active={activeTab === 'homework'} label={`Homework ${counts.homework}`} onPress={() => setActiveTab('homework')} />
       </View>
 
-      {state.loading ? <SkeletonList /> : null}
+      {activeTab === 'daily' ? <ScrollView contentContainerStyle={styles.list}><DailyTasksSection /></ScrollView> : null}
 
-      {!state.loading && state.error ? (
+      {activeTab !== 'daily' && state.loading ? <SkeletonList /> : null}
+
+      {activeTab !== 'daily' && !state.loading && state.error ? (
         <View style={styles.stateWrap}>
           <ErrorState message={state.error} />
           <AppButton title="Retry" onPress={retry} />

@@ -5,9 +5,12 @@ import { router } from 'expo-router';
 import { useAuth } from '@/auth/AuthProvider';
 import { AppButton, AppCard, AppScreen, AppText } from '@/design-system/components';
 import { colors, spacing } from '@/design-system/tokens';
+import { useInstitutionExperience } from '@/features/learning/experience-store';
+import { ProfileExtras } from '@/features/learning/ProfileExtras';
 
 export default function StudentProfileScreen() {
   const { user, logout } = useAuth();
+  const institution = useInstitutionExperience();
   const [loggingOut, setLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +41,7 @@ export default function StudentProfileScreen() {
         <Meta label="Role" value={user?.role ?? 'Student'} />
         <Meta label="Organization" value={user?.organization?.name ?? 'EduSetu'} />
       </AppCard>
+      {institution ? <ProfileExtras /> : null}
       {error ? <AppText accessibilityRole="alert" style={styles.error}>{error}</AppText> : null}
       <AppButton title="Log out" loading={loggingOut} disabled={loggingOut} onPress={() => void handleLogout()} />
     </AppScreen>
