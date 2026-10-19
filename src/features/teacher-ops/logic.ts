@@ -398,8 +398,9 @@ export function buildCreateQuizRequest(input: QuizFormInput, scope: { classId: s
 // ------------------------------------------------------------------- labels
 
 export function statusTone(status: string): 'success' | 'warning' | 'info' | 'muted' | 'danger' {
-  if (['SUBMITTED', 'PUBLISHED', 'GRADED', 'EVALUATED'].includes(status)) return 'success';
-  if (['DRAFT', 'PENDING_REVIEW', 'PARTIALLY_GRADED', 'LATE'].includes(status)) return 'warning';
+  if (['SUBMITTED', 'PUBLISHED', 'GRADED', 'EVALUATED', 'PRESENT'].includes(status)) return 'success';
+  if (['ABSENT'].includes(status)) return 'danger';
+  if (['DRAFT', 'PENDING_REVIEW', 'PARTIALLY_GRADED', 'LATE', 'NOT_SUBMITTED'].includes(status)) return 'warning';
   if (['IN_PROGRESS'].includes(status)) return 'info';
   return 'muted';
 }

@@ -1,2 +1,3 @@
-import { FoundationScreen } from '@/components/common/FoundationScreen';
-export default function ParentNoticesScreen() { return <FoundationScreen title="Notices" />; }
+import { ParentNoticesScreen } from '@/features/parent/ParentScreens';
+
+export default ParentNoticesScreen;

@@ -7,12 +7,15 @@ import { AppScreen, AppText, EmptyState } from '@/design-system/components';
 
 import { Chips, ErrorPanel, LoadingPanel, PerformanceScroll, PeriodChips, StudentPerformanceView } from './components';
 import { presetRange, type PeriodPreset } from './period';
+import { useParentContext } from '@/stores/parent-context';
 import { useRemoteData } from './use-remote-data';
 import { ALL_SUBJECTS, useSubjectOptions } from './use-subject-options';
 
 export default function ParentPerformanceScreen() {
   const { user } = useAuth();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Shared with the other parent screens so the selected child is the same everywhere.
+  const selectedId = useParentContext((state) => state.selectedStudentProfileId);
+  const setSelectedId = useParentContext((state) => state.selectStudent);
   const [preset, setPreset] = useState<PeriodPreset>('academic-year');
   const [subject, setSubject] = useState(ALL_SUBJECTS);
 
@@ -36,7 +39,7 @@ export default function ParentPerformanceScreen() {
       setSelectedId(null);
       reloadChildren();
     }
-  }, [perf.error, reloadChildren]);
+  }, [perf.error, reloadChildren, setSelectedId]);
 
   const selectChild = (id: string) => {
     if (id === child?.studentProfileId) return;

@@ -1,2 +1,2 @@
-import { FoundationScreen } from '@/components/common/FoundationScreen';
-export default function StudentLearnScreen() { return <FoundationScreen title="Learn" />; }
+import AiHubScreen from '@/features/ai/AiHubScreen';
+export default AiHubScreen;

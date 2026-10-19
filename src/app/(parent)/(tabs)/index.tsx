@@ -1,2 +1,3 @@
-import { FoundationScreen } from '@/components/common/FoundationScreen';
-export default function ParentHomeScreen() { return <FoundationScreen title="Home" />; }
+import { ParentDashboardScreen } from '@/features/parent/ParentScreens';
+
+export default ParentDashboardScreen;

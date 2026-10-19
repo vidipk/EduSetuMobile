@@ -15,10 +15,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     'expo-secure-store',
     'expo-sharing',
-    ['expo-camera', { recordAudioAndroid: false }],
-    ['expo-image-picker', { microphonePermission: false }],
+    // Voice learning needs RECORD_AUDIO, so the camera plugin must not strip it.
+    ['expo-camera', { recordAudioAndroid: true, microphonePermission: 'EduSetu uses the microphone only during voice learning sessions you start.' }],
+    // Not `false`: that blocks RECORD_AUDIO app-wide, which voice learning needs.
+    ['expo-image-picker', { microphonePermission: 'EduSetu uses the microphone only during voice learning sessions you start.' }],
     'expo-document-picker',
     '@sentry/react-native/expo',
+    '@livekit/react-native-expo-plugin',
   ],
   experiments: { typedRoutes: true },
   extra: { appEnvironment },
@@ -27,6 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Temporary internal-testing identity. A Play Store package ID needs product approval.
     package: 'com.edusetu.mobile.internal',
     versionCode: 1,
+    permissions: ['android.permission.RECORD_AUDIO', 'android.permission.MODIFY_AUDIO_SETTINGS'],
     adaptiveIcon: {
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundColor: '#F3E8BC',
