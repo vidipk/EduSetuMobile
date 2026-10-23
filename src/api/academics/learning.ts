@@ -1,6 +1,9 @@
 import { apiClient } from '@/api/client';
 import type {
+  CatalogCourse,
   ChangePasswordRequest,
+  CourseLessonRecord,
+  NotificationRecord,
   LearningAnalytics,
   LearningCourse,
   LearningExperience,
@@ -47,6 +50,25 @@ export const learningApi = {
   },
   async notices(page = 1, limit = 15) {
     return (await apiClient.get<Paginated<StudentNotice>>('/notices/me', { params: { page, limit } })).data;
+  },
+  /** Published courses the student may see, each with its subject (existing GET /courses; students cannot call /subjects). */
+  async catalogCourses() {
+    return (await apiClient.get<Paginated<CatalogCourse>>('/courses', { params: { limit: 100 } })).data.items;
+  },
+  async courseLessons(courseId: string) {
+    return (await apiClient.get<CourseLessonRecord[]>(`/courses/${encodeURIComponent(courseId)}/lessons`)).data;
+  },
+  async notifications(page = 1, limit = 20, isRead?: boolean) {
+    return (await apiClient.get<Paginated<NotificationRecord>>('/notifications', { params: clean({ page, limit, isRead }) })).data;
+  },
+  async unreadCount() {
+    return (await apiClient.get<{ count: number }>('/notifications/unread-count')).data.count;
+  },
+  async markNotificationRead(id: string) {
+    await apiClient.patch(`/notifications/${encodeURIComponent(id)}/read`);
+  },
+  async markAllNotificationsRead() {
+    await apiClient.patch('/notifications/read-all');
   },
   async changePassword(payload: ChangePasswordRequest) {
     await apiClient.post('/auth/change-password', payload);

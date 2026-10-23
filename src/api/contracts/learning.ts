@@ -151,3 +151,33 @@ export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
 }
+
+/** A published course (chapter) with its subject, from the student-authorised GET /courses. */
+export interface CatalogCourse {
+  id: string;
+  title: string;
+  description: string | null;
+  subjectId: string;
+  subject: { id: string; name: string; code: string | null; description: string | null } | null;
+  _count?: { lessons: number; videos: number; sourceLibraryItems: number };
+}
+
+export interface CourseLessonRecord {
+  id: string;
+  title: string;
+  description: string | null;
+  orderIndex: number;
+  status?: string;
+}
+
+export interface NotificationRecord {
+  id: string;
+  title: string;
+  message: string;
+  type: 'SYSTEM' | 'ACADEMIC' | 'BILLING' | 'REMINDER' | 'ALERT' | 'NOTICE';
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+  noticeId: string | null;
+  notice: { id: string; type: string; status: string; title: string; publishedAt: string | null } | null;
+}

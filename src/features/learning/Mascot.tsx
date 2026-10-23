@@ -30,11 +30,11 @@ interface MascotProps {
   assetKey: string | null;
 }
 
-export function Mascot({ name, state, message, reduceAnimations, assetKey }: MascotProps) {
+/** Bounce value that stays still when the learner/server or the device asks for reduced motion. */
+function useMascotMotion(reduceAnimations: boolean, state: MascotState) {
   const [systemReduce, setSystemReduce] = useState(false);
   const [bounce] = useState(() => new Animated.Value(0));
   const animate = !reduceAnimations && !systemReduce;
-  const hasAsset = Boolean(assetKey && MASCOT_ASSETS[assetKey] !== undefined);
 
   useEffect(() => {
     let active = true;
@@ -53,7 +53,36 @@ export function Mascot({ name, state, message, reduceAnimations, assetKey }: Mas
     return () => loop.stop();
   }, [animate, bounce, state]);
 
-  const line = message ?? DEFAULT_LINES[state];
+  return bounce;
+}
+
+export function mascotLine(state: MascotState, message: string | null) {
+  return message ?? DEFAULT_LINES[state];
+}
+
+/** Compact mascot for the Home hero card: same footprint as the decorative tile it replaces, no speech bubble. */
+export function MascotBadge({ name, state, message, reduceAnimations, assetKey, size = 64 }: MascotProps & { size?: number }) {
+  const bounce = useMascotMotion(reduceAnimations, state);
+  const hasAsset = Boolean(assetKey && MASCOT_ASSETS[assetKey] !== undefined);
+  return (
+    <Animated.View
+      accessible
+      accessibilityLabel={`${name ?? 'Guide'} says: ${mascotLine(state, message)}`}
+      style={[styles.badge, { height: size, width: size, transform: [{ translateY: bounce }] }]}
+    >
+      {hasAsset && assetKey ? (
+        <Image accessibilityIgnoresInvertColors source={MASCOT_ASSETS[assetKey]} style={{ borderRadius: 999, height: size, width: size }} />
+      ) : (
+        <AppText style={styles.initial}>{(name ?? 'E').slice(0, 1).toUpperCase()}</AppText>
+      )}
+    </Animated.View>
+  );
+}
+
+export function Mascot({ name, state, message, reduceAnimations, assetKey }: MascotProps) {
+  const bounce = useMascotMotion(reduceAnimations, state);
+  const hasAsset = Boolean(assetKey && MASCOT_ASSETS[assetKey] !== undefined);
+  const line = mascotLine(state, message);
   return (
     <View accessible accessibilityLabel={`${name ?? 'Guide'} says: ${line}`} style={styles.row}>
       <Animated.View style={[styles.badge, { transform: [{ translateY: bounce }] }]}>

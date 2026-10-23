@@ -54,6 +54,11 @@ jest.mock('@/api/academics/learning', () => ({
     openVideo: jest.fn(),
     setReduceAnimations: jest.fn(),
     changePassword: jest.fn(),
+    catalogCourses: jest.fn(),
+    notifications: jest.fn(),
+    unreadCount: jest.fn(),
+    markNotificationRead: jest.fn(),
+    markAllNotificationsRead: jest.fn(),
   },
 }));
 
@@ -84,6 +89,8 @@ beforeEach(() => {
   useLearningExperience.getState().reset();
   api.tasks.mockResolvedValue([]);
   api.courses.mockResolvedValue([]);
+  api.catalogCourses.mockResolvedValue([]);
+  api.unreadCount.mockResolvedValue(0);
   api.catalogue.mockResolvedValue({ items: [], topics: [], meta: { page: 1, limit: 12, total: 0, totalPages: 1 } });
 });
 
@@ -118,14 +125,12 @@ test('the institution Home shows real persisted data only and a guide when confi
     mascot: { enabled: true, state: 'DAILY_TASK_AVAILABLE', message: null, reduceAnimations: false },
   });
   const screen = await render(<StudentHomeRoute />);
-  await waitFor(() => expect(screen.getByText('Welcome, Asha')).toBeTruthy());
-  expect(screen.getByText('Daily quiz 1')).toBeTruthy();
-  expect(screen.getByText('Earlier quiz')).toBeTruthy();
-  expect(screen.getByText('Score 90%')).toBeTruthy();
-  expect(screen.getByText(/Worth revising/)).toBeTruthy();
-  expect(screen.getByText(/Watching is not tracked as completion/)).toBeTruthy();
-  expect(screen.getByLabelText(/Deepak says/)).toBeTruthy();
-  await act(async () => { fireEvent.press(screen.getByText('Daily quiz 1')); });
+  await waitFor(() => expect(screen.getByText('Hi, Asha!')).toBeTruthy());
+  expect(screen.getByText('Daily quiz 1')).toBeTruthy(); // today's focus is the one pending assigned quiz
+  expect(screen.getByText('82.5%')).toBeTruthy();
+  expect(screen.getByLabelText(/Deepak says/)).toBeTruthy(); // mascot sits in the hero card slot
+  expect(screen.getByText('Earlier quiz result is ready')).toBeTruthy();
+  await act(async () => { fireEvent.press(screen.getByLabelText('Start quiz')); });
   expect(mockPush).toHaveBeenCalledWith('/(student)/quiz/q1');
 });
 
@@ -139,11 +144,12 @@ test('Home never invents data when nothing exists', async () => {
     mascot: { enabled: false, state: 'WELCOME', message: null, reduceAnimations: false },
   });
   const screen = await render(<StudentHomeRoute />);
-  await waitFor(() => expect(screen.getByText('Nothing is assigned for today.')).toBeTruthy());
-  expect(screen.getByText('Completed quizzes will appear here.')).toBeTruthy();
-  expect(screen.getByText('Results appear once released')).toBeTruthy();
+  await waitFor(() => expect(screen.getByText("You're all caught up")).toBeTruthy());
+  expect(screen.getByText('Appears once results are released')).toBeTruthy();
+  expect(screen.getByText('—')).toBeTruthy();
+  expect(screen.queryByText(/result is ready/)).toBeNull();
   expect(screen.queryByText(/Continue learning/)).toBeNull();
-  expect(screen.queryByLabelText('Reduce animations')).toBeNull();
+  expect(screen.queryByLabelText(/says/)).toBeNull(); // mascot disabled -> nothing rendered
 });
 
 // ------------------------------------------------------------------- Learn
@@ -242,16 +248,21 @@ test('Daily tasks says so plainly when nothing is assigned', async () => {
 
 // ------------------------------------------------------------------ Notices
 
-test('institution Notices come from the existing learner notice feed', async () => {
+test('institution Notifications come from the server feed with server-side read state', async () => {
   setExperience(true);
-  api.notices.mockResolvedValue({
-    items: [{ id: 'n1', type: 'GENERAL', status: 'PUBLISHED', title: 'Holiday', body: 'School is closed Monday.', publishedAt: '2026-10-18T00:00:00Z', createdAt: '2026-10-18T00:00:00Z', createdBy: { id: 'u', fullName: 'Principal', role: 'SCHOOL_ADMIN' }, academicYear: { id: 'y', name: '2026-27' }, delivery: { notificationId: 'd', isRead: false, readAt: null, deliveredAt: '2026-10-18T00:00:00Z' } }],
-    meta: { page: 1, limit: 15, total: 1, totalPages: 1 },
+  const now = new Date().toISOString();
+  api.notifications.mockResolvedValue({
+    items: [{ id: 'n1', type: 'NOTICE', title: 'Holiday', message: 'School is closed Monday.', isRead: false, readAt: null, createdAt: now, noticeId: 'x', notice: { id: 'x', type: 'GENERAL', status: 'PUBLISHED', title: 'Holiday', publishedAt: now } }],
+    meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
   });
+  api.unreadCount.mockResolvedValue(1);
+  api.markNotificationRead.mockResolvedValue(undefined);
   const screen = await render(<StudentNoticesRoute />);
   await waitFor(() => expect(screen.getByText('Holiday')).toBeTruthy());
-  expect(screen.getByText('School is closed Monday.')).toBeTruthy();
-  expect(api.notices).toHaveBeenCalledWith(1, 15);
+  expect(screen.getByText('Official notice')).toBeTruthy();
+  expect(api.notifications).toHaveBeenCalledWith(1, 20, undefined);
+  await act(async () => { fireEvent.press(screen.getByText('Holiday')); });
+  expect(api.markNotificationRead).toHaveBeenCalledWith('n1');
 });
 
 // ------------------------------------------------- first login / password

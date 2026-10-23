@@ -1,8 +1,8 @@
 import AiHubScreen from '@/features/ai/AiHubScreen';
 import { useInstitutionExperience } from '@/features/learning/experience-store';
-import { LearnScreen } from '@/features/learning/LearnScreen';
+import { VeralayamLearnScreen } from '@/features/learning/subjects/VeralayamLearnScreen';
 
 export default function StudentLearnRoute() {
   const institution = useInstitutionExperience();
-  return institution ? <LearnScreen /> : <AiHubScreen />;
+  return institution ? <VeralayamLearnScreen /> : <AiHubScreen />;
 }

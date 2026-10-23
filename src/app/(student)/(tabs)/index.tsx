@@ -4,11 +4,11 @@ import { StyleSheet } from 'react-native';
 import { useAuth } from '@/auth/AuthProvider';
 import { AppButton, AppCard, AppScreen, AppText } from '@/design-system/components';
 import { useInstitutionExperience } from '@/features/learning/experience-store';
-import { LearningHomeScreen } from '@/features/learning/LearningHomeScreen';
+import { VeralayamHome } from '@/features/learning/veralayam-ui/VeralayamHome';
 
 export default function StudentHomeRoute() {
   const institution = useInstitutionExperience();
-  return institution ? <LearningHomeScreen /> : <StandardStudentHome />;
+  return institution ? <VeralayamHome /> : <StandardStudentHome />;
 }
 
 function StandardStudentHome() {
