@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import StudentProfileScreen from '@/app/(student)/(tabs)/profile';
 import { useAuth } from '@/auth/AuthProvider';
@@ -34,7 +34,7 @@ test('student profile logout waits for auth clear and redirects to login', async
   });
 
   const screen = await render(<StudentProfileScreen />);
-  fireEvent.press(screen.getByRole('button', { name: 'Log out' }));
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'Log out' })); });
 
   await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
   expect(mockReplace).toHaveBeenCalledWith('/(auth)/login');

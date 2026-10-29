@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import StudentQuizDetailScreen from '@/app/(student)/quiz/[quizId]';
 import { studentWorkApi } from '@/api/academics/student-work';
@@ -80,14 +80,14 @@ test('starts, answers, reviews and submits a quiz without showing teacher-only a
   await waitFor(() => expect(view.getByText('Fractions Quiz')).toBeTruthy());
   expect(view.queryByText(/correct answer is hidden/i)).toBeNull();
 
-  fireEvent.press(view.getByRole('button', { name: 'Start quiz' }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: 'Start quiz' })); });
   await waitFor(() => expect(mockedApi.startQuiz).toHaveBeenCalledWith('quiz-1'));
 
-  fireEvent.press(view.getAllByRole('radio')[0]);
+  await act(async () => { fireEvent.press(view.getAllByRole('radio')[0]); });
   await waitFor(() => expect(view.getByText('1/1 answered')).toBeTruthy());
-  fireEvent.press(view.getByRole('button', { name: 'Review' }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: 'Review' })); });
   await waitFor(() => expect(view.getByRole('button', { name: 'Submit quiz' })).toBeTruthy());
-  fireEvent.press(view.getByRole('button', { name: 'Submit quiz' }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: 'Submit quiz' })); });
 
   await waitFor(() => expect(mockedApi.submitQuizAttempt).toHaveBeenCalledWith('attempt-1', { answers: { q1: 'o1' } }));
   await waitFor(() => expect(view.getAllByText('Awaiting review').length).toBeGreaterThan(0));

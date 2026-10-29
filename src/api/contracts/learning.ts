@@ -36,6 +36,24 @@ export interface LearningVideo {
   durationSeconds: number | null;
   language: string | null;
   topic: LearningTopic | null;
+  transcriptLanguages: string[];
+}
+
+export interface LearningTranscriptSegment {
+  index: number;
+  startMs: number | null;
+  endMs: number | null;
+  text: string;
+}
+
+export interface LearningTranscript {
+  id: string;
+  videoId: string;
+  videoTitle: string;
+  language: string;
+  availableLanguages: string[];
+  originalText: string;
+  segments: LearningTranscriptSegment[];
 }
 
 export interface VideoCatalogue extends Paginated<LearningVideo> {

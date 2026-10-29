@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import StudentTasksScreen from '@/app/(student)/(tabs)/tasks';
 import { studentWorkApi } from '@/api/academics/student-work';
@@ -73,7 +73,7 @@ test('renders assigned homework after switching tabs', async () => {
   const view = await render(<StudentTasksScreen />);
 
   await waitFor(() => expect(view.getByRole('button', { name: /Homework 1/i })).toBeTruthy());
-  fireEvent.press(view.getByRole('button', { name: /Homework 1/i }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: /Homework 1/i })); });
 
   await waitFor(() => expect(view.getByText('Algebra Practice')).toBeTruthy());
   expect(view.getByText('Deadline')).toBeTruthy();
@@ -87,7 +87,7 @@ test('shows an empty state for empty results', async () => {
   const view = await render(<StudentTasksScreen />);
 
   await waitFor(() => expect(view.getByText('No quizzes assigned')).toBeTruthy());
-  fireEvent.press(view.getByRole('button', { name: /Homework 0/i }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: /Homework 0/i })); });
   await waitFor(() => expect(view.getByText('No homework assigned')).toBeTruthy());
 });
 
@@ -97,7 +97,7 @@ test('shows retry for API failures', async () => {
   const view = await render(<StudentTasksScreen />);
 
   await waitFor(() => expect(view.getByText('Network unavailable')).toBeTruthy());
-  fireEvent.press(view.getByRole('button', { name: 'Retry' }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: 'Retry' })); });
   await waitFor(() => expect(mockedApi.listQuizzes).toHaveBeenCalledTimes(2));
 });
 
@@ -105,12 +105,12 @@ test('navigates to assignment details', async () => {
   const view = await render(<StudentTasksScreen />);
 
   await waitFor(() => expect(view.getByRole('button', { name: /Fractions Quiz/i })).toBeTruthy());
-  fireEvent.press(view.getByRole('button', { name: /Fractions Quiz/i }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: /Fractions Quiz/i })); });
   expect(mockPush).toHaveBeenCalledWith('/(student)/quiz/quiz-1');
 
-  fireEvent.press(view.getByRole('button', { name: /Homework 1/i }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: /Homework 1/i })); });
   await waitFor(() => expect(view.getByRole('button', { name: /Algebra Practice/i })).toBeTruthy());
-  fireEvent.press(view.getByRole('button', { name: /Algebra Practice/i }));
+  await act(async () => { fireEvent.press(view.getByRole('button', { name: /Algebra Practice/i })); });
   expect(mockPush).toHaveBeenCalledWith('/(student)/homework/homework-1');
 });
 const mockPush = jest.mocked(require('expo-router').router.push);

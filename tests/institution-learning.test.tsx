@@ -52,6 +52,7 @@ jest.mock('@/api/academics/learning', () => ({
     courses: jest.fn(),
     notices: jest.fn(),
     openVideo: jest.fn(),
+    transcript: jest.fn(),
     setReduceAnimations: jest.fn(),
     changePassword: jest.fn(),
     catalogCourses: jest.fn(),
@@ -76,7 +77,7 @@ const task = (overrides: Record<string, unknown> = {}): LearningTask => ({
 } as LearningTask);
 
 const video = (overrides: Record<string, unknown> = {}) => ({
-  id: 'v1', title: 'Episode 161', thumbnailUrl: null, watchUrl: 'https://www.youtube.com/watch?v=abc', youtubeVideoId: 'abc', publishedAt: null, durationSeconds: 1510, language: 'hi', topic: { id: 't1', name: 'Gyansaar' }, ...overrides,
+  id: 'v1', title: 'Episode 161', thumbnailUrl: null, watchUrl: 'https://www.youtube.com/watch?v=abc', youtubeVideoId: 'abc', publishedAt: null, durationSeconds: 1510, language: 'hi', topic: { id: 't1', name: 'Gyansaar' }, transcriptLanguages: ['en'], ...overrides,
 });
 
 function setExperience(enabled: boolean) {
@@ -162,6 +163,8 @@ test('Learn lists approved lectures and passes search, topic and language filter
   await waitFor(() => expect(screen.getByText('Episode 161')).toBeTruthy());
   expect(screen.getByText('Gyansaar · 25:10 · HI')).toBeTruthy();
   expect(screen.getByText('Foundations')).toBeTruthy();
+  await act(async () => { fireEvent.press(screen.getByLabelText('Read transcript for Episode 161')); });
+  expect(mockPush).toHaveBeenCalledWith({ pathname: '/(student)/learning-transcript', params: { videoId: 'v1', title: 'Episode 161' } });
 
   await act(async () => { fireEvent.press(screen.getByText('English')); });
   await waitFor(() => expect(api.catalogue).toHaveBeenLastCalledWith(expect.objectContaining({ language: 'en', page: 1 })));
@@ -282,7 +285,8 @@ test('the layout asks the server which experience applies before rendering tabs'
   expect(api.experience).toHaveBeenCalledTimes(1);
   expect(useLearningExperience.getState().enabled).toBe(true);
 
-  useLearningExperience.getState().reset();
+  await screen.unmount();
+  await act(async () => { useLearningExperience.getState().reset(); });
   api.experience.mockRejectedValue(new Error('offline'));
   await render(<StudentLayout />);
   await waitFor(() => expect(useLearningExperience.getState().status).toBe('failed'));

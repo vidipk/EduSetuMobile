@@ -10,6 +10,7 @@ import type {
   LearningHome,
   LearningLessonDetail,
   LearningTask,
+  LearningTranscript,
   OpenVideoResult,
   Paginated,
   StudentNotice,
@@ -38,6 +39,9 @@ export const learningApi = {
   },
   async openVideo(videoId: string) {
     return (await apiClient.post<OpenVideoResult>(`/learning/videos/${encodeURIComponent(videoId)}/open`)).data;
+  },
+  async transcript(videoId: string, language?: string) {
+    return (await apiClient.get<LearningTranscript>(`/learning/videos/${encodeURIComponent(videoId)}/transcript`, { params: clean({ language }) })).data;
   },
   async courses() {
     return (await apiClient.get<LearningCourse[]>('/learning/courses')).data;

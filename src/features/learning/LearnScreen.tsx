@@ -127,7 +127,16 @@ export function LearnScreen() {
           {!state.loading && !state.error && state.items.length === 0 ? (
             <EmptyState title="No lectures found" detail={query || topicId || language ? 'Try clearing the search or filters.' : 'Approved lectures will appear here.'} />
           ) : null}
-          {state.items.map((video) => <VideoCard key={video.id} video={video} onOpen={() => void open(video)} />)}
+          {state.items.map((video) => (
+            <VideoCard
+              key={video.id}
+              video={video}
+              onOpen={() => void open(video)}
+              onTranscript={video.transcriptLanguages?.length
+                ? () => router.push({ pathname: '/(student)/learning-transcript', params: { videoId: video.id, title: video.title } } as unknown as Href)
+                : undefined}
+            />
+          ))}
           {openMessage ? <AppText accessibilityRole="alert" style={styles.error}>{openMessage}</AppText> : null}
           {state.page < state.totalPages ? <AppButton title="Load more" loading={state.loadingMore} onPress={() => void load(state.page + 1, 'more')} /> : null}
         </View>
@@ -138,19 +147,26 @@ export function LearnScreen() {
   );
 }
 
-function VideoCard({ video, onOpen }: { video: LearningVideo; onOpen: () => void }) {
+function VideoCard({ video, onOpen, onTranscript }: { video: LearningVideo; onOpen: () => void; onTranscript?: () => void }) {
   const duration = durationLabel(video.durationSeconds);
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`Open ${video.title} on YouTube`} onPress={onOpen}>
-      <AppCard style={styles.videoCard}>
+    <AppCard style={styles.videoCard}>
         {video.thumbnailUrl ? <Image source={{ uri: video.thumbnailUrl }} style={styles.thumb} contentFit="cover" accessibilityIgnoresInvertColors /> : <View style={[styles.thumb, styles.thumbEmpty]} />}
         <AppText style={styles.cardTitle}>{video.title}</AppText>
         <AppText style={styles.muted}>
           {[video.topic?.name, duration, video.language?.toUpperCase()].filter(Boolean).join(' · ')}
         </AppText>
-        <AppText style={styles.link}>Watch on YouTube</AppText>
-      </AppCard>
-    </Pressable>
+      <View style={styles.videoActions}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Open ${video.title} on YouTube`} onPress={onOpen} style={styles.videoAction}>
+          <AppText style={styles.link}>Watch on YouTube</AppText>
+        </Pressable>
+        {onTranscript ? (
+          <Pressable accessibilityRole="button" accessibilityLabel={`Read transcript for ${video.title}`} onPress={onTranscript} style={styles.videoAction}>
+            <AppText style={styles.link}>Read transcript</AppText>
+          </Pressable>
+        ) : null}
+      </View>
+    </AppCard>
   );
 }
 
@@ -185,6 +201,8 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#fff' },
   courseCard: { gap: spacing.xs },
   videoCard: { gap: spacing.xs },
+  videoActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  videoAction: { justifyContent: 'center', minHeight: 44, paddingHorizontal: spacing.sm },
   thumb: { aspectRatio: 16 / 9, backgroundColor: colors.border, borderRadius: radius.md, width: '100%' },
   thumbEmpty: { opacity: 0.6 },
   cardTitle: { fontSize: 16, fontWeight: '800', lineHeight: 22 },
